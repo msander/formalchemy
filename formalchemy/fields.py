@@ -17,7 +17,8 @@ from sqlalchemy.orm.interfaces import ONETOMANY
 from sqlalchemy.orm.interfaces import MANYTOONE
 from sqlalchemy.orm import class_mapper, Query
 from sqlalchemy.orm.attributes import ScalarAttributeImpl, ScalarObjectAttributeImpl, CollectionAttributeImpl, InstrumentedAttribute
-from sqlalchemy.orm.properties import CompositeProperty, ColumnProperty
+from sqlalchemy.orm.properties import CompositeProperty, ColumnProperty,\
+    SynonymProperty
 from sqlalchemy import exceptions as sqlalchemy_exceptions
 from formalchemy import helpers as h
 from formalchemy import fatypes, validators
@@ -1600,6 +1601,8 @@ class AttributeField(AbstractField):
             return _foreign_keys(self._property)
         elif isinstance(self._impl, ScalarAttributeImpl) or self._impl.__class__.__name__ in ('ProxyImpl', '_ProxyImpl'): # 0.4 compatibility: ProxyImpl is a one-off class for each synonym, can't import it
             # normal property, mapped to a single column from the main table
+            if isinstance(self._property,SynonymProperty):
+                return [getattr(self._property.parent.mapped_table.c,self._property.key),]
             return self._property.columns
         else:
             # collection -- use the mapped class's PK
